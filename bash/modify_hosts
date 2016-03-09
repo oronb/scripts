@@ -13,6 +13,11 @@ ip=(`cat $file_source | awk '{print $1}'`)
 n=$((${#ip[@]} - 1))
 server=(`cat $file_source | awk '{print $2}'`)
 
+if [ ! -e "$file_source" ]
+then
+	echo "$file_srouce doesn't exist!"
+fi
+
 function_check () {
   echo "checking $2.."
   ping $1 -w 1 > /dev/null
