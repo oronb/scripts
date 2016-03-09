@@ -1,0 +1,39 @@
+#! /bin/bash
+
+check=()
+
+function hello {
+	repository=$1
+	repo_name=`echo $repository | rev | cut -d/ -f 1 | rev | sed s/\.git//g`
+	cd /opt/git/script_repositories;git clone $repository 2>/dev/null;cd $repo_name;git fetch origin >nul 2>nul
+
+	branches=(`git branch -a | grep -v HEAD | grep remotes | rev | cut -d/ -f 1 | rev`)
+	n=$((${#branches[@]} -1))
+
+	for i in `seq 0 $n`;
+	do
+		git checkout ${branches[$i]} >nul 2>nul
+		if [[ $(git log HEAD..origin/${branches[$i]}  --oneline) ]]
+		then
+			 #check_true+=('true')
+			 echo "changes made in ${branches[$i]}"
+			 #echo "pulling changes"
+			 git pull origin >nul 2>nul
+			 check+=('false')
+		else
+		         echo "no changes made in ${branches[$i]}"
+		fi
+	done
+}
+
+hello $1
+hello $2
+
+if [ ${#check[@]} -eq 0 ]; then
+        echo "nothing to do"
+else
+	#echo "pulling changes"
+	#git pull origin >nul 2>nul
+        r10k_deploy_all
+        check_puppet_environment
+fi
