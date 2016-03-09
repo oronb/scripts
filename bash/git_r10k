@@ -1,11 +1,12 @@
 #! /bin/bash
 
 check=()
+path=/opt/git/script_repositories
 
 function hello {
 	repository=$1
 	repo_name=`echo $repository | rev | cut -d/ -f 1 | rev | sed s/\.git//g`
-	cd /opt/git/script_repositories;git clone $repository 2>/dev/null;cd $repo_name;git fetch origin >nul 2>nul
+	mkdir -p $path >nul 2>nul;cd $path;git clone $repository 2>/dev/null;cd $repo_name;git fetch origin >nul 2>nul
 
 	branches=(`git branch -a | grep -v HEAD | grep remotes | rev | cut -d/ -f 1 | rev`)
 	n=$((${#branches[@]} -1))
