@@ -1,4 +1,5 @@
 #! /bin/bash
+
 path=$1
 script_type=$2
 script_name=`echo $path | rev | cut -d/ -f 1 | rev`
