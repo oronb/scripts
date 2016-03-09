@@ -1,0 +1,62 @@
+#! /bin/bash
+
+check=()
+path='/opt/git/script_repositories'
+
+function r10k {
+	/usr/local/bin/r10k_deploy_all
+        /usr/local/bin/check_puppet_environment
+}
+
+function hello {
+	repository=$1
+	repo_name=`echo $repository | rev | cut -d/ -f 1 | rev | sed s/\.git//g`
+	mkdir -p $path;cd $path
+	clone=$( { git clone $repository; } 2>&1 )
+	if ! [[ ${clone} =~ .*exist.* ]]
+	then
+		echo "$1 not exist"
+		r10k
+	fi
+	cd $repo_name
+	#fetch=`git fetch --all -p | grep '\-\>'`
+	git fetch --all -p  2>&1  | grep -q "\->"
+	if [ $? -eq 0 ]
+	then
+		echo "doing changes"
+		r10k
+	fi
+	git branch -vv | grep ": gone]" | awk '{ print $1 }' | xargs -n 1 git branch -D
+	#check_branch branch_delete
+
+	branches=(`git branch -a | grep -v HEAD | grep remotes | rev | cut -d/ -f 1 | rev`)
+	n=$((${#branches[@]} -1))
+
+	for i in `seq 0 $n`;
+	do
+		git checkout ${branches[$i]} 
+		if [[ $(git log HEAD..origin/${branches[$i]}  --oneline) ]]
+		then
+			 #check_true+=('true')
+			 echo "changes made in ${branches[$i]}"
+			 #echo "pulling changes"
+			 git pull origin 
+			 check+=('false')
+		else
+		         echo "no changes made in ${branches[$i]}"
+		   	 git pull origin
+		fi
+	done
+	git checkout ORIG_HEAD 
+}
+
+hello $1
+hello $2
+
+if [ ${#check[@]} -eq 0 ]; then
+        echo "nothing to do"
+else
+	#echo "pulling changes"
+	#git pull origin >nul 2>nul
+	r10k
+fi
