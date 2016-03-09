@@ -1,0 +1,35 @@
+#! /bin/bash
+
+path="/etc/puppetlabs/code/environments"
+environments=(`ls -la /etc/puppetlabs/code/environments/ | awk '$9 ~ /[a-z].*/' | awk '{print $9}'`)
+n=$((${#environments[@]} -1))
+
+check_environments () {
+	environment=$1
+	check=`ls -la $path | grep $1 | awk '{ print $3 }'`
+	if [ $check != "pe-puppet" ]
+	then
+		echo "environment $environment owner changed to pe-puppet"
+		chown -R pe-puppet:pe-puppet "$path/$environment"
+	fi
+}
+
+check_artifactory () {
+	environment=$1
+	path_artifactory=$path/$environment/modules/artifactory
+	if [ -e "$path_artifactory" ]
+	then
+		check=`ls -la $path_artifactory | grep files | awk '{ print $1 }'`
+		if [ "$check" != "drwxrwxr-x" ]
+		then
+		chmod 775 $path_artifactory/files
+		echo "$path_artifactory/files permissions changed to 775"
+		fi
+	fi
+}
+
+for i in `seq 0 $n`;
+do
+check_environments ${environments[$i]}
+check_artifactory ${environments[$i]}
+done
