@@ -1,0 +1,46 @@
+#! /bin/bash
+path=$1
+script_type=$2
+script_name=`echo $path | rev | cut -d/ -f 1 | rev`
+directory=`echo $path | rev | cut -d/ -f2- | rev`
+reds="\e[31m"
+rede="\e[0m"
+
+function_make () {
+	touch $directory/$script_name
+	if [ "$script_type" == "bash" ]
+	then
+        	echo "#! /bin/bash" > $directory/$script_name
+	elif [ "$script_type" == "yaml" ]
+	then
+		echo "---" > $directory/$script_name
+	else 
+	        echo "$reds script_type not given! $rede"
+       	        exit
+	fi
+ 	vim $directory/$script_name
+}
+
+if [ $# -ne 2 ]
+then
+	echo "usage: make_script <path> <script_type>"
+	exit
+elif [ ! -d "$directory" ]
+then
+	echo -e "$reds directory $directory doesn't exit! $rede"
+        exit
+elif [ ! -w "$directory" ]
+then
+	echo "$reds `whoami` doesn't have writes permissions! $rede"
+        exit
+elif [ -e "$directory/$script_name" ]
+then
+	read -p "File exist! overwite it?" yn
+	case $yn in
+	[Yy]* ) function_make ;;
+	[Nn]* ) exit ;;
+	* ) echo "Please anser yes or no.";exit ;;
+	esac
+else
+	function_make
+fi
