@@ -1,0 +1,43 @@
+#! /bin/bash
+
+# Replace ips and servers in /etc/hosts from source file in all the servers in the source file
+
+if [[ $# -ne 1 ]] ; then
+    echo 'Usage: modify_hosts source_file'
+    exit 0
+fi
+
+file_source=$1
+file_destination='/etc/hosts'
+ip=(`cat $file_source | awk '{print $1}'`)
+n=$((${#ip[@]} - 1))
+server=(`cat $file_source | awk '{print $2}'`)
+
+function_check () {
+  echo "checking $2.."
+  ping $1 -w 1 > /dev/null
+  if [ $? -ne 0 ]
+  then
+	#cho -e "\e[1;31m Error: service $1 on $3 stopped, because tomcat on $2 is down \e[0m" >&2
+     echo -e "\e[1;31m wrong ip of $2! \e[0m"
+     exit
+  fi
+}
+
+function_ip () {
+for i in `seq 0 $n`;
+do
+    yes yes | ssh $1 "sed -i 's|^.*${server[$i]}|${ip[$i]} ${server[$i]}|g' $file_destination"
+done
+echo "$2 /etc/hosts config complete!"
+}
+
+for i in `seq 0 $n`;
+do
+function_check ${ip[$i]} ${server[$i]}
+done
+
+for i in `seq 0 $n`;
+do
+function_ip ${ip[$i]} ${server[$i]}
+done
