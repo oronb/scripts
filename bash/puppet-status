@@ -1,0 +1,10 @@
+#! /bin/bash
+
+service pe-activemq status
+service pe-console-services status
+service pe-nginx status
+service pe-orchestration-services status
+service pe-postgresql status
+service pe-puppetdb status
+service pe-puppetserver status
+
