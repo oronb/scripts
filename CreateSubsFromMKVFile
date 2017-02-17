@@ -1,0 +1,28 @@
+import sys, datetime, os, getopt, logging,smtplib, subprocess, re
+
+mkv_folder = raw_input("which folder of mkv files do you want to take subtitles of?")
+
+if mkv_folder == "":
+    logging.error("Error: missing mandatory mkv_folder")
+
+mkvextract = "C:\\Program Files\\MKVToolNix\\mkvextract.exe"
+sub_folder = "%s\\subtitles" % (mkv_folder)
+
+if not os.path.exists(sub_folder):
+	subprocess.check_output(["cmd", "/c", "mkdir", sub_folder])
+
+for filename in os.listdir(mkv_folder):
+	regexp = re.compile(r'.*.mkv')
+	file_path = "%s\\%s" % (mkv_folder, filename)
+	if regexp.search(filename):
+		try:
+			subfile = re.sub('.mkv', '.ass', filename)
+			command = "2:%s\\%s" % (sub_folder, subfile)
+			print "%s" % (file_path)
+			print("Info: start doing things")
+			subprocess.check_output([mkvextract, 'tracks', file_path, command])
+			print("Info: created without errors\n" )
+		except subprocess.CalledProcessError as e:
+			print("The Error:\n")
+			print(e.output)
+			sys.exit(2)
