@@ -1,5 +1,13 @@
 import sys, datetime, os, getopt, logging,smtplib, subprocess, re
 
+Style_Default="Style: Default,BN Modern DemiBold,48,&H00FFFFFF,&H00B00410,&H00060460,&H96000000,0,0,0,0,122,100,0,0,1,2.5,3,2,30,30,17,177"
+Style_Default2="Style: Default2,BN Modern DemiBold,48,&H00FFFFFF,&H00B00410,&H0005416B,&H96000000,0,0,0,0,122,100,0,0,1,3,3,2,30,30,17,177"
+Style_comment="Style: comment,BN Modern DemiBold,38,&H00FFFFFF,&H00B00410,&H00000000,&H96000000,0,0,0,0,122,100,0,0,1,2.5,3,8,30,30,17,177"
+
+Style_Default_new="Style: Default,BN Modern DemiBold,16,&H00FFFFFF,&H00000000,&H00000000,&H96000000,0,0,0,0,122,100,0,0,1,2.5,3,2,30,30,17,177"
+Style_Default2_new="Style: Default2,BN Modern DemiBold,16,&H00FFFFFF,&H00000000,&H00000000,&H96000000,0,0,0,0,122,100,0,0,1,3,3,2,30,30,17,177"
+Style_comment_new="Style: comment,BN Modern DemiBold,16,&H00FFFFFF,&H00000000,&H00000000,&H96000000,0,0,0,0,122,100,0,0,1,2.5,3,8,30,30,17,177"
+
 mkv_folder = raw_input("which folder of mkv files do you want to take subtitles of?")
 
 if mkv_folder == "":
@@ -16,13 +24,29 @@ for filename in os.listdir(mkv_folder):
 	file_path = "%s\\%s" % (mkv_folder, filename)
 	if regexp.search(filename):
 		try:
-			subfile = re.sub('.mkv', '.ass', filename)
-			command = "2:%s\\%s" % (sub_folder, subfile)
+			#create the subtitle file
+			subfile_name = re.sub('.mkv', '.ass', filename)
+			subfile_path = "%s\\%s" % ( sub_folder, subfile_name)
+			command = "2:%s" % (subfile_path)
 			print "%s" % (file_path)
-			print("Info: start doing things")
+			print("Info: creating %s" % subfile_name)
 			subprocess.check_output([mkvextract, 'tracks', file_path, command])
 			print("Info: created without errors\n" )
+			#Replace the subtitle files, with the information I gave
+			with open(subfile_path) as f:
+				s = f.read()
+			with open(subfile_path, 'w') as f:
+				s = s.replace(Style_Default, Style_Default_new)
+				f.write(s)
+			with open(subfile_path, 'w') as f:
+				s = s.replace(Style_Default2, Style_Default2_new)
+				f.write(s)
+			with open(subfile_path, 'w') as f:
+				s = s.replace(Style_comment, Style_comment_new)
+				f.write(s)
 		except subprocess.CalledProcessError as e:
 			print("The Error:\n")
 			print(e.output)
 			sys.exit(2)
+			
+			
