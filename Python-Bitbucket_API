@@ -4,13 +4,15 @@ import urllib3
 import urllib2
 from requests.auth import HTTPBasicAuth
 urllib3.disable_warnings()
-projects_url='https://devops.restest.bank/bitbucket/rest/api/1.0/projects'
+projects_url='https://url/bitbucket/rest/api/1.0/projects'
 file=".gitignore"
+user=""
+password=""
 target=""
 def json_trns(url):
 	headers = {'Content-Type': 'application/json'}
 	url = '%s' % (url)
-	curl = requests.get(url, auth=HTTPBasicAuth('IH1', 'Oo1234'), headers=headers, verify=False)
+	curl = requests.get(url, auth=HTTPBasicAuth('', ''), headers=headers, verify=False)
 	return curl.json()
 	
 def json_value(first_value,second_value,json_output):
@@ -30,7 +32,7 @@ for key in project_keys:
 	for repo in repos_name:
 		print repo
 		try:
-			r=requests.get('%s/%s/repos/%s/browse/%s?raw' % (projects_url, key, repo, file), auth=HTTPBasicAuth('IH1', 'Oo1234'), verify=False)
+			r=requests.get('%s/%s/repos/%s/browse/%s?raw' % (projects_url, key, repo, file), auth=HTTPBasicAuth('', ''), verify=False)
 			r.raise_for_status()
 			file_json=json_trns('%s/%s/repos/%s/browse/.gitignore?raw' % (projects_url, key, repo))
 			file_content=(json_value('lines','text',file_json))
