@@ -1,0 +1,65 @@
+import json
+import requests
+import urllib3
+import urllib2
+from requests.auth import HTTPBasicAuth
+urllib3.disable_warnings()
+projects_url='https://devops.restest.bank/bitbucket/rest/api/1.0/projects'
+file=".gitignore"
+target=""
+def json_trns(url):
+	headers = {'Content-Type': 'application/json'}
+	url = '%s' % (url)
+	curl = requests.get(url, auth=HTTPBasicAuth('IH1', 'Oo1234'), headers=headers, verify=False)
+	return curl.json()
+	
+def json_value(first_value,second_value,json_output):
+	list=[]
+	for value in json_output[first_value]:
+		list.append(value[second_value])
+	return list	
+	
+projects_json = json_trns(projects_url)
+project_keys=(json_value('values','key',projects_json))
+project_names=(json_value('values','name',projects_json))
+
+for key in project_keys:
+	repos_json = json_trns('%s/%s/repos' % (projects_url, key))
+	repos_name=(json_value('values','name',repos_json))
+	#print "Project key: %s" % (key)
+	for repo in repos_name:
+		print repo
+		try:
+			r=requests.get('%s/%s/repos/%s/browse/%s?raw' % (projects_url, key, repo, file), auth=HTTPBasicAuth('IH1', 'Oo1234'), verify=False)
+			r.raise_for_status()
+			file_json=json_trns('%s/%s/repos/%s/browse/.gitignore?raw' % (projects_url, key, repo))
+			file_content=(json_value('lines','text',file_json))
+			print "%s exists in %s" % (file, repo)
+			for line in file_content:
+				if line == 'target/':
+					#print "target/ was found in %s in %s" % (file, repo)
+					target = "true"
+			if target != "true":
+				print "target/ was not found in %s in %s" % (file, repo)
+				target=""
+			target=""
+		except requests.exceptions.RequestException as e:
+			#print e
+			print ".gitignore doesn't exist in %s!!!!!!!!!" % (repo)
+			#sys.exit(1)
+			#print ".gitignore doesn't exist in %s!!!!!!" % (repo)
+		##file_json=json_trns('%s/%s/repos/%s/browse/.gitignore?raw' % (projects_url, key, repo))
+		#print '%s/%s/repos/%s/browse/.gitignore?raw' % (projects_url, key, repo)
+		##file_content=(json_value('lines','text',file_json))
+		#for line in file_content:
+		#	print line
+		#if repo == "Infra":
+		#	print "Infra"
+		#else:
+		#	print "Repo name: not infra, but %s" % (repo)
+	
+	
+	
+
+
+
